@@ -1,0 +1,7 @@
+{
+  "autoUpdatesChannel": "stable",
+  "remoteControlAtStartup": true,
+  "agentPushNotifEnabled": true,
+  "theme": "dark",
+  "cleanupPeriodDays": 36500
+}
