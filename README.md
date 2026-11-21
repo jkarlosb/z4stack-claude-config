@@ -66,11 +66,34 @@ git -C "$R" commit -m "chore: actualiza configuración de Claude Code"
 git -C "$R" push
 ```
 
+### Acceso a GitHub (deploy key)
+
+El repo es `git@github.com:jkarlosb/z4stack-claude-config.git` (privado). El servidor sube los cambios con una *deploy key*: una clave SSH que solo da acceso a este repo, así que no hace falta guardar en el servidor la cuenta personal de GitHub.
+La clave está en `~/.ssh-deploy/` y no en `~/.ssh/`, porque en staging `~/.ssh` es de `root`. En GitHub se llama `pr-staging` (Settings → Deploy keys) y se revoca borrándola de ahí.
+
+Para crearla en un servidor nuevo:
+
+```bash
+D=~/.ssh-deploy
+mkdir -m 700 "$D"
+ssh-keygen -q -t ed25519 -f "$D/z4stack-claude-config" -N "" -C "$(hostname) deploy key z4stack-claude-config"
+ssh-keyscan -t ed25519 github.com 2>/dev/null > "$D/known_hosts"
+ssh-keygen -lf "$D/known_hosts"   # debe salir SHA256:+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU
+cat "$D/z4stack-claude-config.pub"
+```
+
+Comprueba la huella en https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/githubs-ssh-key-fingerprints.
+Después añade la clave pública en https://github.com/jkarlosb/z4stack-claude-config/settings/keys, con un nombre que identifique el servidor y la opción **Allow write access** marcada.
+
 ### Restaurar en un servidor nuevo
+
+Antes, crea la deploy key (apartado anterior).
 
 ```bash
 R=~/claude-config
-git clone <URL-del-repo> "$R"
+SSHCMD="ssh -i ~/.ssh-deploy/z4stack-claude-config -o IdentitiesOnly=yes -o UserKnownHostsFile=~/.ssh-deploy/known_hosts"
+GIT_SSH_COMMAND="$SSHCMD" git clone git@github.com:jkarlosb/z4stack-claude-config.git "$R"
+git -C "$R" config core.sshCommand "$SSHCMD"
 mkdir -p ~/.claude/projects/-z4/memory
 cp -p "$R/global/CLAUDE.md" "$R/global/settings.json" ~/.claude/
 cp -p "$R/z4/CLAUDE.md" /z4/
