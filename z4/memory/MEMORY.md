@@ -1,1 +1,2 @@
 - [Tabla de cambios: una fila por archivo](tabla-cambios-una-fila-por-archivo.md) — nunca agrupar por carpeta ni por commit
+- [Documentos solo como comentarista](documentos-solo-como-comentarista.md) — en docs del usuario, comentarios/sugerencias, nunca editar
