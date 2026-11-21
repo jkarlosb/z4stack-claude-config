@@ -25,7 +25,7 @@ Además existe `z4-drive.sh`, que solo sube a Drive lo que se le indique, reutil
 ## Reglas obligatorias
 1. **Cambios mínimos.** No cambies ningún comportamiento sin aprobación explícita del usuario. Antes de editar: explica qué cambias y por qué, enseña el diff y espera el "sí". Numera los cambios; el último aprobado es el 20, más los cambios A–G. Commits en `/z4/web` (rama `prnoticias.com`): `6ad86a5`, `7b96164`, `1ed0634`, `90a4cd4` (prompt), `ebad449` (19), `9f24bf6` (20).
    - `z4-drive.sh` (sin numerar): `74f268e`, `f8a1ee8`, `f40fe9b`, `456a937`, `55e95d9`, `0796ca2`, `8494762` (registro de las 19 pruebas).
-   - Antes de modificar este CLAUDE.md, deja una copia de la versión anterior como `/z4/CLAUDE.md-bck-AAAAMMDD`.
+   - Este CLAUDE.md, `~/.claude/CLAUDE.md` y la memoria (`~/.claude/projects/-z4/memory/`) están respaldados en el repo `~/claude-config` (GitHub privado `jkarlosb/z4stack-claude-config`). Después de cada cambio en cualquiera de ellos, súbelo al repo: copia, commit y push, con el bloque "Actualizar el repo" de su README. Ya no se hacen copias `-bck-`.
 2. **El original es la referencia.** Si algo funcionaba en `auto-maint.sh`, no se rompe. Ante la duda, compara con el original y dilo. No "mejores" nada que no se haya pedido; proponlo y espera.
 3. **Honestidad.** Distingue lo comprobado de lo deducido. Verifica en el servidor con comandos de solo lectura antes de proponer una solución. Si una hipótesis falla, dilo claramente.
 4. **Orden de pruebas, de menos a más riesgo:** `bash -n` / `node --check` → comandos de solo lectura → ejecución real.
