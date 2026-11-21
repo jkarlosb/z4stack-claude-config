@@ -69,3 +69,13 @@ M) Recuperar conversaciones de Claude Code (archivadas o no) para usarlas por Re
   `tmux new -d -s <nombre-corto> "cd <carpeta-del-proyecto> && claude --resume <id-local> --rc"`
 
 
+
+N) Documentos (Google Docs, Claude Docs u otros a los que te dé acceso)
+- Propón los cambios siempre como sugerencias o comentarios, nunca como edición directa, salvo que te pida editar algo concreto. En Google Docs: `update_doc` con `writeControl.writeMode: "SUGGEST"` (el conector no crea comentarios).
+- No pierdas diagramas ni fórmulas al pasar contenido a Google Docs. Conviértelos en imagen:
+  1. Dibuja el diagrama (o la fórmula) en SVG plano.
+  2. Renderízalo a PNG en un contenedor desechable, sin instalar nada en el host:
+     `docker run --rm -v "$DIR":/d alpine:3.20.3 sh -c 'apk add -q --no-cache rsvg-convert font-dejavu && rsvg-convert -w 1520 -o /d/x.png /d/x.svg'`
+     y revisa el PNG visualmente antes de subirlo.
+  3. Súbelo a Drive con `disableConversionToGoogleType: true` (sin eso Drive lo convierte en un Google Doc).
+  4. Google Docs solo inserta imágenes públicas: compártelo como "cualquiera con el enlace" (lector), insértalo con `insertInlineImage` (`https://drive.google.com/uc?export=view&id=ID`) y manda el PNG a la papelera justo después. Docs guarda su propia copia. El conector no puede quitar permisos, por eso la papelera.
