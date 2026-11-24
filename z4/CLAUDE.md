@@ -79,6 +79,7 @@ Además existe `z4-drive.sh`, que solo sube a Drive lo que se le indique, reutil
 - **`--drive-root-folder-id ID`** al montar hace que esa carpeta sea la raíz. Funciona dentro de «Mantenimientos» y fuera, si la carpeta está compartida con la cuenta de servicio (prueba 19, 19-nov).
 - **Zip en el montaje de rclone (sin caché):** no se puede escribir directamente (deducido, sin probar); necesitaría un temporal local. Por eso `z4-drive.sh` solo tiene `--tar`. `zip` no está instalado.
 - **`read -p`** no muestra la pregunta si la entrada no viene de una terminal; con `echo |` o `< /dev/null`, `z4-drive.sh` cancela con código 1.
+- **Correo del stack:** `send-email.sh` (backups) y `check-certs.sh` (certificados) envían con `openssl s_client -starttls smtp` a `ssl0.ovh.net:587` y no leen las respuestas SMTP: un fallo pasa desapercibido. Para probar una credencial sin enviar nada: `curl --ssl-reqd -K - -X NOOP smtp://ssl0.ovh.net:587` (250 = correcta, 535 / exit 67 = rechazada). En `master` existe `scripts/check-disk-space.sh` (aviso por bytes libres, sin uso).
 
 ## Producción y mantenimiento con swap (hechos comprobados)
 - `rsync_z4web` excluye `data/binlog.*`, `logs/`, `cache/`, `wp-content/cache/`, `uploads/` (van con `cp -al`), `updraft/`, `maintenance/backups/` y los backups de iThemes. Tras el swap, eso solo existe en `/z4/web.original`: al borrarla se pierde (24-nov se perdieron así los backups locales y los binlogs).
@@ -110,7 +111,8 @@ Además existe `z4-drive.sh`, que solo sube a Drive lo que se le indique, reutil
     - El último binlog (`binlog.000549`) crece ~1 MB/min; antes era ~1 GB/min.
     - Quedan 131 ficheros: la purga automática al rotar funciona, porque sin ella habría más de 200.
   - **Comprobado a las 17:01:** `binlog.000549` (desde las 14:28) va por 232 MB (~1,5 MB/min) y no ha vuelto a rotar. **Retención subida a 24 h** (`SET PERSIST binlog_expire_logs_seconds=86400`), unos 2,2 GB a este ritmo. Lo de Elementor queda cerrado; en cada mantenimiento hay que revisar los bugs (lo dice la ficha).
-  - Documentado como sugerencias en el historial (bajo «Carlos», 24-nov) y en la ficha técnica (Intervención → Harcodeos → Elementor Pro), que se revisa en cada mantenimiento.
+  - **Retención subida a 7 días** (24-nov, tras las 18:13; `SET PERSIST binlog_expire_logs_seconds=604800`). Ritmo medido de 14:28 a 18:13: ~1,4 MB/min (~2 GB/día, ~14 GB en 7 días). Los 131 ficheros (131G) de antes del arreglo se purgan solos al rotar, hacia el 1-2 dic.
+  - Documentado como sugerencias en el historial (bajo «Carlos», 24-nov) y en la ficha técnica (Intervención → Harcodeos → Elementor Pro), que se revisa en cada mantenimiento; también la subida a 7 días.
 - **Orden de las próximas tareas:** 1) en un chat nuevo, la alerta de disco; 2) Redis (noticias nuevas que no aparecen).
   - Para identificar opciones como esta: tamaño de los eventos `Update_rows` de `wp_options` + las opciones más grandes medidas dos veces, con 60 s entre una y otra.
 - **Pendientes:**
@@ -118,8 +120,13 @@ Además existe `z4-drive.sh`, que solo sube a Drive lo que se le indique, reutil
     - Hoy hubo dos causas distintas (`web.original` y los binlogs) y solo la alerta cubre las dos.
     - La alerta no borra nada ni esconde a quien escribe sin control.
     - La retención por tiempo ya pone límite a los binlogs.
-    - Falta decidir el canal de aviso.
+    - Canal (decidido 24-nov), por fases; cada una solo después de comprobar que la anterior funciona:
+      1. Correo a `tech@z4studios.com` desde `servidor@z4studios.es` (SMTP de OVH, `ssl0.ovh.net:587`), con `curl`; credencial en un archivo de root (600) fuera de git. Descartados: relay de Workspace por IP (si entran en el servidor, envían como @z4studios.com y pasa SPF/DMARC), cuenta de servicio con delegación, OAuth y entrega directa al MX.
+      2. Explicar al detalle healthchecks.io (avisa también si el cron deja de ejecutarse) y valorarlo.
+      3. Bot de Telegram.
     - MySQL 8.0 no tiene límite de tamaño total de binlog: `binlog_space_limit` es de Percona, `max_binlog_total_size` es de MariaDB, y el bug de MySQL #66733 sigue abierto. Comprobado en el manual de MySQL 8.0 el 24-nov.
+  - Avisos de backups y certificados de prod PR rotos: la rama `prnoticias.com` usa `no-reply@z4studios.es`, que falla con 535 desde 2023 (`master` pasó a `servidor@` en `d774ec2`). Arreglarlo es una tarea aparte.
+  - Credenciales de correo en git (`z4stackweb`): `send-email.sh`, `check-certs.sh`, `scripts/check-disk-space.sh` (master) y `deploy/z4-wp-init.sh:151` (`admin@z4studios.es`, en claro). Decidir si se rotan; afecta a todos los servidores del stack.
   - Comprobar que hay una copia reciente de la BD en la nube.
   - Decidir si se borran `/z4/web.backup-eliminarmastarde` y `/z4/web.backup2` (16G cada una).
   - Averiguar si se ejecutó `tune2fs -m 1`; si se ejecutó, volver a `-m 5`.
