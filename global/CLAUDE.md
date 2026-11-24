@@ -87,7 +87,9 @@ O) Z4 Studios: documentación de clientes
   - Lo que pasa en la web de un cliente → su historial.
   - Lo que hay que revisar o tener en cuenta en cada mantenimiento de ese cliente (hardcodeos, configuraciones especiales) → su ficha técnica.
   - Cambios en cómo se hace el mantenimiento, para todos los clientes → el protocolo general.
+  - Lo que afecta al stack (scripts, contenedores, cron, alertas del servidor) → la sección «Historial» de la documentación de z4stack; en el historial del cliente, solo un enlace.
 - Documentos comunes a todos los clientes:
   - Protocolo de mantenimiento: https://docs.google.com/document/d/1VPylIUzypF1j3Sl0XR4hu1i5Ejc3O9U5wypTjxBNb-8 (permiso de comentador).
   - Documentación de `z4-evidencias.sh` (fuente de la verdad desde el 23-nov-2026): https://docs.google.com/document/d/1J34OePEoH2tUfTZE8YTCFBBwrcbWJFG2/edit
+  - Documentación de z4stack (el stack común a todas las webs): https://docs.google.com/document/d/1zjYVqCUAz22FmiwzTeQGCyF6rxnRgGojYRnCgbSCmUs
 - Los documentos de cada cliente (historial y ficha) están en el CLAUDE.md de su proyecto, sección «Documentos del cliente». Si no la tiene, pídemelos.
