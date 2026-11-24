@@ -39,6 +39,11 @@ Además existe `z4-drive.sh`, que solo sube a Drive lo que se le indique, reutil
 6. **Secretos:** no imprimas `rclone.conf`, el `.env` completo ni la clave de PageSpeed.
 7. **Versiones siempre fijas** en imágenes y dependencias. Nunca `latest`.
 8. Respuestas en español, directas, con los comandos listos para copiar.
+9. **Guardar el estado.** Propón por tu cuenta guardar aquí (Estado, Hechos comprobados, Pendientes) y en la memoria lo que no esté escrito, y avisa al hacerlo. Hazlo en dos casos:
+   - Cuando la conversación se alargue (muchos mensajes, salidas grandes o antes de un `/compact`). Incluye lo que está a medias y el siguiente paso exacto.
+   - En cuanto aparezca algo que convenga no perder: un hecho comprobado, un hallazgo tras mucha investigación, una contradicción o algo que no se ve a simple vista, o una conclusión útil para el futuro.
+
+   Enseña el diff y, con OK, aplícalo y súbelo a `claude-config`.
 
 ## Hechos ya comprobados (no hay que volver a descubrirlos)
 - **El script se ejecuta con `sudo`**, igual que el original. Sin root falla el montaje de Drive (`/z4/remote/maint/mount` es de `root:root`) y también `umount`.
@@ -67,6 +72,33 @@ Además existe `z4-drive.sh`, que solo sube a Drive lo que se le indique, reutil
 - **`--drive-root-folder-id ID`** al montar hace que esa carpeta sea la raíz. Funciona dentro de «Mantenimientos» y fuera, si la carpeta está compartida con la cuenta de servicio (prueba 19, 19-nov).
 - **Zip en el montaje de rclone (sin caché):** no se puede escribir directamente (deducido, sin probar); necesitaría un temporal local. Por eso `z4-drive.sh` solo tiene `--tar`. `zip` no está instalado.
 - **`read -p`** no muestra la pregunta si la entrada no viene de una terminal; con `echo |` o `< /dev/null`, `z4-drive.sh` cancela con código 1.
+
+## Producción y mantenimiento con swap (hechos comprobados)
+- `rsync_z4web` excluye `data/binlog.*`, `logs/`, `cache/`, `wp-content/cache/`, `uploads/` (van con `cp -al`), `updraft/`, `maintenance/backups/` y los backups de iThemes. Tras el swap, eso solo existe en `/z4/web.original`: al borrarla se pierde (24-nov se perdieron así los backups locales y los binlogs).
+- Los enlaces duros (`cp -al`) no ocupan espacio extra, y borrar uno no libera nada mientras quede otro.
+- MySQL 8.0.29 tiene los binlogs activos (valor por defecto): ficheros de 1 GB y 30 días de retención, porque `binlog_expire_logs_seconds` está comentado en `config/mysql/conf.d/z4stack-mysql.cnf`. Comprobado en prod el 24-nov (`1 2592000 1073741824`). En staging el formato es ROW con imagen FULL y no hay réplicas.
+- La imagen `mysql:8.0.29` no trae `mysqlbinlog`. Para saber qué tabla genera el binlog, con el fichero `F` (p. ej. `binlog.000473`):
+  `sudo docker exec db sh -c 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" -NBe "SHOW BINLOG EVENTS IN \"'$F'\""' 2>/dev/null | awk -F'\t' '$3=="Table_map"{t=$6; sub(/.*\(/,"",t); sub(/\).*/,"",t)} {b[t]+=$5-$2} END{for(k in b) printf "%8.1f MB %s\n", b[k]/1048576, k}' | sort -rn | head -12`
+  Probado en staging: 9 s con 672 MB.
+- Con el disco lleno, MySQL no puede escribir temporales («table … is full», ERROR 1114): las transacciones se quedan abiertas, hay `Lock wait timeout` (en `user_hit_count` de ManageWP y en las metas de visitas), la CPU está casi a 0 y la web cae (24-nov). MySQL no usa el 5 % reservado de ext4.
+- Redis en prod: contenedor `ocache`, `redis:7.4.11-alpine`, con `--save "" --appendonly no --maxmemory 4gb --maxmemory-policy allkeys-lru`; solo prefijo `wp`. Drop-in en `httpdocs/wp-content/object-cache.php`.
+- Redis Object Cache, según sus desarrolladores: WordPress invalida solo y vaciar la caché al publicar está desaconsejado. Si solo se arregla vaciándola, el tema o un plugin es incompatible, y se mete su grupo en `WP_REDIS_IGNORED_GROUPS`. Último recurso: vaciado horario por WP-Cron. En staging la cadena es WP Rocket + Cloudflare (mu-plugin `z4-cf-bucket-tablet.php`) + Redis; `jnews-view-counter` usa el grupo `jnews-view-counter`.
+
+## Estado a 24-nov-2026 (prod PR, tras el mantenimiento del 23-nov)
+- **Redis desactivado en prod** (`wp redis disable`; drop-in sin instalar; `ocache` sigue en marcha). Con Redis, las noticias nuevas no aparecían. La causa está sin encontrar. El borrador de mu-plugin que vacía la caché al publicar está descartado por ahora (no se quieren parches).
+- La web cayó por disco al 100 %. Se recuperó con `sudo rm -rf /z4/web.original`, que liberó 226G.
+- **Urgente, a medias:** los binlogs ocupan 475G en prod (89 % de `/z4/web`) y crecen a **~1 GB por minuto** (un fichero de 1 GB por minuto el 24-nov a las 12:40). Si el ritmo antiguo hubiera sido este, 30 días no cabrían en el disco, así que algo cambió el 23 o el 24-nov: la actualización de 33 plugins, Redis desactivado, bots… (deducido). **Siguiente paso:**
+  1. Ritmo por hora y réplicas (solo lectura).
+  2. Con OK, `SET GLOBAL binlog_expire_logs_seconds=3600` + `PURGE BINARY LOGS BEFORE NOW() - INTERVAL 1 HOUR`.
+  3. Tabla culpable con el comando de `SHOW BINLOG EVENTS` (hechos).
+  4. Arreglo de raíz: corregir quien escribe, y decidir en el `.cnf` entre desactivar el binlog (`disable_log_bin`) o dejar una retención corta.
+- **Pendientes:**
+  - Comprobar que hay una copia reciente de la BD en la nube.
+  - Decidir si se borran `/z4/web.backup-eliminarmastarde` y `/z4/web.backup2` (16G cada una).
+  - Averiguar si se ejecutó `tune2fs -m 1`; si se ejecutó, volver a `-m 5`.
+  - Redis: reproducir el fallo en staging (pide OK: `wp` que escribe). Faltan dos datos: qué bloque o página salía sin actualizar, y si las noticias eran programadas o manuales.
+  - Protocolo (como sugerencias): comprobar `df` antes de la copia inicial y añadir un paso para lo excluido antes de borrar la original.
+  - Bots (SQLi en `?amp=`, paginación profunda) → bloquear en Cloudflare. `user_hit_count` (ManageWP) y `_eael_post_view_count` escriben en cada visita.
 
 ## Estado a 17-nov-2026 (tarde)
 - La v10 está probada con `sudo`: capturas y subida a Drive OK; fallaban las imágenes con lazy load, el banner, `pagespeed.png` y el enlace de Drive.

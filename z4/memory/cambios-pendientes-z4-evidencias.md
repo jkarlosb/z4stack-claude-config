@@ -19,7 +19,7 @@ Aprobados por el usuario el 23-nov-2026 para hacerlos **después** del mantenimi
   - `wp plugin update --all`: los 33 plugins se actualizaron, pero al final dio un fatal de FluentSMTP (`BulkSendSessionHandler` not found) al enviar WSAL su email de aviso: código viejo en memoria y nuevo en disco. Ese email no salió. Comprobar «Send Test Email» de FluentSMTP.
   - Por el `set -e` de `is_z4staging`, el fatal cortó el resto del bloque (restart web, transients, cache flush, rm cache, plugin list): confirmar que se ejecutó después.
   - `duplicate-post` y `wordpress-seo` piden WP 7.0: actualizarlos tras el core.
-  - Tras las actualizaciones de `redis-cache` 3.0.1 y `w3-total-cache`, confirmar `wp redis status` → Drop-in: Valid. W3TC sigue instalado: valorar quitarlo.
+  - Redis está desactivado en prod desde el 24-nov (ver «Estado a 24-nov» en /z4/CLAUDE.md). W3TC sigue instalado: valorar quitarlo.
   - `is_z4staging` deja `set -e` activo en la shell que la llama: arreglarlo (p. ej. `local -` o sin `set -e`).
   - Historial de staging (doc 1uD6BcJF…, apartado Redis): la ruta `/z4/web/config/object-cache.php` está mal; es `/z4/web/httpdocs/wp-content/object-cache.php`.
   - En prod hizo falta `sudo chmod -R g+w /z4/maints/` para que `z4log` pudiera escribir.
