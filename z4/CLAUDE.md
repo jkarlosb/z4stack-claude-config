@@ -9,6 +9,10 @@ Además existe `z4-drive.sh`, que solo sube a Drive lo que se le indique, reutil
 
 **Ojo:** el dominio no cambia. Desde este servidor, y desde sus contenedores, `prnoticias.com` apunta a **PRODUCCIÓN**. Las capturas y PageSpeed miden producción, y eso es aceptado.
 
+## Documentos del cliente (prnoticias.com)
+- Historial: «Historial web PR parte 2», https://docs.google.com/document/d/1uD6BcJF0Yk4E7A6LxIo-hlcr4ufPfq0VwZEr4zHMXuQ (entradas por técnico; lo de Claude va bajo «Carlos»).
+- Ficha técnica: «Ficha y antes de actualizar», https://docs.google.com/document/d/1a3Rqp44obFhFRw1PsjxYMiWDIlBhctUtidgDpwk1Sm4 (los hardcodeos van en Intervención → Harcodeos).
+
 ## Archivos
 | Ruta | Qué es | ¿Se puede tocar? |
 |---|---|---|
@@ -45,6 +49,7 @@ Además existe `z4-drive.sh`, que solo sube a Drive lo que se le indique, reutil
    - En cuanto aparezca algo que convenga no perder: un hecho comprobado, un hallazgo tras mucha investigación, una contradicción o algo que no se ve a simple vista, o una conclusión útil para el futuro.
 
    Enseña el diff y, con OK, aplícalo y súbelo a `claude-config`.
+   En ese mismo momento, revisa si falta documentar algo en Drive (sección O del CLAUDE.md global) y, si falta, avísame.
    Después: si la siguiente tarea es distinta, es mejor abrir una sesión nueva en `/z4` que compactar; da el primer mensaje listo para copiar (p. ej. «Lee el Estado de CLAUDE.md. Vamos con …»). Si es la misma tarea y la sesión está cargada, recomienda compactar en la siguiente pausa natural, nunca a mitad de una prueba y siempre después de guardar el estado. El criterio es el gasto, no solo el espacio: cada llamada reenvía todo el contexto. Por encima de unos 100k tokens, con la mayor parte de tareas ya cerradas, compactar compensa. Para recomendarlo hay que saber el uso actual y el límite de la ventana (p. ej. «173k / 1M»): si no los sabes, pídemelos. Me basta con decírtelos, no hace falta `/context`.
 
 ## Hechos ya comprobados (no hay que volver a descubrirlos)
@@ -104,9 +109,9 @@ Además existe `z4-drive.sh`, que solo sube a Drive lo que se le indique, reutil
     - La opción no existe.
     - El último binlog (`binlog.000549`) crece ~1 MB/min; antes era ~1 GB/min.
     - Quedan 131 ficheros: la purga automática al rotar funciona, porque sin ella habría más de 200.
-  - **Siguiente paso:** confirmar el ritmo hacia las 15:30 (el binlog en curso debería ir por ~60 MB) y entonces `SET PERSIST binlog_expire_logs_seconds=86400` (24 h).
+  - **Comprobado a las 17:01:** `binlog.000549` (desde las 14:28) va por 232 MB (~1,5 MB/min) y no ha vuelto a rotar. **Retención subida a 24 h** (`SET PERSIST binlog_expire_logs_seconds=86400`), unos 2,2 GB a este ritmo. Lo de Elementor queda cerrado; en cada mantenimiento hay que revisar los bugs (lo dice la ficha).
   - Documentado como sugerencias en el historial (bajo «Carlos», 24-nov) y en la ficha técnica (Intervención → Harcodeos → Elementor Pro), que se revisa en cada mantenimiento.
-- **Orden de las próximas tareas:** 1) cerrar lo de Elementor; 2) en un chat nuevo, la alerta de disco; 3) Redis (noticias nuevas que no aparecen).
+- **Orden de las próximas tareas:** 1) en un chat nuevo, la alerta de disco; 2) Redis (noticias nuevas que no aparecen).
   - Para identificar opciones como esta: tamaño de los eventos `Update_rows` de `wp_options` + las opciones más grandes medidas dos veces, con 60 s entre una y otra.
 - **Pendientes:**
   - **Red de seguridad contra el disco lleno** (en un chat nuevo, justo después de Elementor). Decidido: **alerta cuando `df /` pase del 75 %**, con datos de qué ocupa (`df` y las carpetas más grandes). Se prefiere a un tope de binlogs por cron (más de 150G → `PURGE BINARY LOGS TO`):

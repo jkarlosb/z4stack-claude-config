@@ -79,3 +79,15 @@ N) Documentos (Google Docs, Claude Docs u otros a los que te dé acceso)
      y revisa el PNG visualmente antes de subirlo.
   3. Súbelo a Drive con `disableConversionToGoogleType: true` (sin eso Drive lo convierte en un Google Doc).
   4. Google Docs solo inserta imágenes públicas: compártelo como "cualquiera con el enlace" (lector), insértalo con `insertInlineImage` (`https://drive.google.com/uc?export=view&id=ID`) y manda el PNG a la papelera justo después. Docs guarda su propia copia. El conector no puede quitar permisos, por eso la papelera.
+
+O) Z4 Studios: documentación de clientes
+- Somos Z4 Studios, una agencia que mantiene las webs de varios clientes. Todo lo que hagamos en la web de un cliente se documenta: comandos en producción, cambios, comprobaciones, hallazgos y decisiones.
+- Al cerrar cada paso, avísame con un resumen corto: en qué documento lo apuntarías, por qué ahí y qué pondrías, por encima. No escribas en ningún documento hasta que te dé el OK; después, como sugerencia (sección N). Si se me pasa, recuérdamelo.
+- Dónde va cada cosa:
+  - Lo que pasa en la web de un cliente → su historial.
+  - Lo que hay que revisar o tener en cuenta en cada mantenimiento de ese cliente (hardcodeos, configuraciones especiales) → su ficha técnica.
+  - Cambios en cómo se hace el mantenimiento, para todos los clientes → el protocolo general.
+- Documentos comunes a todos los clientes:
+  - Protocolo de mantenimiento: https://docs.google.com/document/d/1VPylIUzypF1j3Sl0XR4hu1i5Ejc3O9U5wypTjxBNb-8 (permiso de comentador).
+  - Documentación de `z4-evidencias.sh` (fuente de la verdad desde el 23-nov-2026): https://docs.google.com/document/d/1J34OePEoH2tUfTZE8YTCFBBwrcbWJFG2/edit
+- Los documentos de cada cliente (historial y ficha) están en el CLAUDE.md de su proyecto, sección «Documentos del cliente». Si no la tiene, pídemelos.

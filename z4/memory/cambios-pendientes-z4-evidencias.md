@@ -1,8 +1,11 @@
 ---
 name: cambios-pendientes-z4-evidencias
-description: Cambios 21, 22, 23 y otros de z4-evidencias.sh/screenshots.js aprobados para después del mantenimiento de prod del 23-nov-2026
+description: "Cambios 21, 22, 23 y otros de z4-evidencias.sh/screenshots.js aprobados para después del mantenimiento de prod del 23-nov-2026"
 metadata:
+  node_type: memory
   type: project
+  originSessionId: 72ff6900-95e2-4e07-bac9-bc163ce49eaf
+  modified: 2026-11-24T16:30:37.706Z
 ---
 
 Aprobados por el usuario el 23-nov-2026 para hacerlos **después** del mantenimiento de producción (no antes):
@@ -25,4 +28,4 @@ Aprobados por el usuario el 23-nov-2026 para hacerlos **después** del mantenimi
   - En prod hizo falta `sudo chmod -R g+w /z4/maints/` para que `z4log` pudiera escribir.
 
 **Why:** el usuario pidió expresamente que no se olvidaran; hoy hizo esas capturas a mano.
-**How to apply:** al acabar el mantenimiento, proponer cada uno con diff numerado y esperar el «sí» (regla 1 de /z4/CLAUDE.md); probar en staging, commit, y luego pull en prod. Documentarlos en [[doc-z4-evidencias-fuente-verdad]].
+**How to apply:** al acabar el mantenimiento, proponer cada uno con diff numerado y esperar el «sí» (regla 1 de /z4/CLAUDE.md); probar en staging, commit, y luego pull en prod. Documentarlos en el doc de z4-evidencias (enlace en la sección O del CLAUDE.md global).
