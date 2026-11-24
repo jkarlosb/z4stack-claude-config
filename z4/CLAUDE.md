@@ -92,12 +92,23 @@ Además existe `z4-drive.sh`, que solo sube a Drive lo que se le indique, reutil
 - **Urgente, a medias:** los binlogs ocupan 475G en prod y crecen a ~1 GB por minuto. El 24-nov a las 12:55 quedaban 188G libres: el disco se llena hacia las 16-17 h.
   - **Causa (comprobado):** prácticamente todo es `wp_options` (1030 MB de 1031 en `binlog.000479`).
   - **Ritmo por hora:** 2-3 ficheros/h el 23-nov a las 19-21 h, justo tras el swap; 13 a la 01 h; ~45 a partir de las 05 h; 63 a las 10 h. Empezó antes de desactivar Redis, así que Redis no es la causa.
-  - **Hipótesis (deducida):** una opción que no para de crecer y se reescribe a menudo. Con ROW/FULL, cada `UPDATE` escribe el valor entero dos veces (antes y después).
+  - **Culpable (comprobado):** `elementor_atomic_cache_validity__popup-trigger-styles-related-posts`, de la clase `Popup_Trigger_Styles` de Elementor Pro 4.4.1 (Elementor 4.4.1). Ocupaba 4,45 MB y crecía unos 3,4 KB/min. Cada `UPDATE` ocupaba 8,7 MB de binlog (ROW/FULL: valor antes y después), unas 2 por segundo.
+  - **Mecanismo (leído en el código):** un nodo de unos 46 B por post. Cada post sin caché reescribe la opción entera. Hay unos 201k posts publicados, así que llegaría a unos 9 MB. Elementor la borra entera al vaciar su caché, y entonces vuelve a crecer desde cero. Por eso **borrarla sin más empeora**: es el apaño que circula. Desactivar el Atomic Editor no afecta a esta clase, que se registra siempre que la Pro está activa.
+  - **Bugs abiertos, sin arreglo:** elementor#37781, #37016 y #35268. El PR #37838 solo evita reescribir cuando no hay cambios.
+  - **Solución elegida:** el mu-plugin `z4-elementor-popup-cache-nowrite.php` (filtro `pre_update_option_<opción>` que devuelve el valor antiguo) + `wp option delete` de la opción. Así los popups se calculan en cada render, sin caché. En staging ningún post tiene popups con disparador y hay una sola plantilla de popup.
+  - **Probado en staging el 24-nov (Elementor 4.3.2/Pro 4.3.0):** sin el mu-plugin, 5 posts crean 5 nodos; con él, la opción no se vuelve a crear y no hay avisos de PHP. La prueba simula el render con `do_action('elementor/post/render')` mediante `wp eval-file`, porque por HTTP staging responde 401.
   - **Medida temporal (24-nov, 13 h):** `SET PERSIST binlog_expire_logs_seconds=10800` (3 h) + `PURGE BINARY LOGS BEFORE NOW() - INTERVAL 3 HOUR`. El disco quedó en 313G usados y 520G libres (38 %). Al principio no se purgó por una mala lectura de la salida («réplicas: fin» sin nada antes = sin réplicas).
   - Cuando se arregle quien escribe: `SET PERSIST binlog_expire_logs_seconds=86400` (24 h). Con el ritmo actual, 24 h serían 1,1-1,5 TB y no caben.
   - `SET PERSIST` se guarda en `/z4/web/data/mysqld-auto.cnf`, que **manda sobre** `z4stack-mysql.cnf` y sobrevive a los reinicios. Para deshacerlo: `RESET PERSIST binlog_expire_logs_seconds`.
-  - **Siguiente paso:** identificar la opción con el tamaño de los eventos `Update_rows` de `wp_options` y con las opciones más grandes medidas dos veces, con 60 s entre una y otra (comandos probados en staging, `t2.sh` del scratchpad de la sesión 72ff6900).
+  - **Siguiente paso:** el usuario instala el mu-plugin en prod y borra la opción. Después se comprueba que el ritmo de binlogs baja (ficheros por hora) y se sube la retención a 24 h o más.
+  - Para identificar opciones como esta: tamaño de los eventos `Update_rows` de `wp_options` + las opciones más grandes medidas dos veces, con 60 s entre una y otra.
 - **Pendientes:**
+  - **Red de seguridad contra el disco lleno** (cuando se resuelva Elementor). Se recomienda la **alerta cuando `df /` pase del 85 %** antes que un tope de binlogs por cron (más de 150G → `PURGE BINARY LOGS TO`):
+    - Hoy hubo dos causas distintas (`web.original` y los binlogs) y solo la alerta cubre las dos.
+    - La alerta no borra nada ni esconde a quien escribe sin control.
+    - La retención por tiempo ya pone límite a los binlogs.
+    - Falta decidir el canal de aviso.
+    - MySQL 8.0 no tiene límite de tamaño total de binlog: `binlog_space_limit` es de Percona, `max_binlog_total_size` es de MariaDB, y el bug de MySQL #66733 sigue abierto. Comprobado en el manual de MySQL 8.0 el 24-nov.
   - Comprobar que hay una copia reciente de la BD en la nube.
   - Decidir si se borran `/z4/web.backup-eliminarmastarde` y `/z4/web.backup2` (16G cada una).
   - Averiguar si se ejecutó `tune2fs -m 1`; si se ejecutó, volver a `-m 5`.
