@@ -39,11 +39,13 @@ Además existe `z4-drive.sh`, que solo sube a Drive lo que se le indique, reutil
 6. **Secretos:** no imprimas `rclone.conf`, el `.env` completo ni la clave de PageSpeed.
 7. **Versiones siempre fijas** en imágenes y dependencias. Nunca `latest`.
 8. Respuestas en español, directas, con los comandos listos para copiar.
-9. **Guardar el estado.** Propón por tu cuenta guardar aquí (Estado, Hechos comprobados, Pendientes) y en la memoria lo que no esté escrito, y avisa al hacerlo. Hazlo en dos casos:
+9. **Guardar el estado.** Propón por tu cuenta guardar aquí (Estado, Hechos comprobados, Pendientes) y en la memoria lo que no esté escrito, y avisa al hacerlo. Hazlo en estos casos:
+   - Cuando termine una tarea o el usuario pase a otra distinta.
    - Cuando la conversación se alargue (muchos mensajes, salidas grandes o antes de un `/compact`). Incluye lo que está a medias y el siguiente paso exacto.
    - En cuanto aparezca algo que convenga no perder: un hecho comprobado, un hallazgo tras mucha investigación, una contradicción o algo que no se ve a simple vista, o una conclusión útil para el futuro.
 
    Enseña el diff y, con OK, aplícalo y súbelo a `claude-config`.
+   Después, si la siguiente tarea es distinta, recomienda abrir una sesión nueva en `/z4` y da el primer mensaje listo para copiar (p. ej. «Lee el Estado de CLAUDE.md. Vamos con …»). Si es la misma tarea y la sesión está muy cargada, recomienda «Compactar sesión».
 
 ## Hechos ya comprobados (no hay que volver a descubrirlos)
 - **El script se ejecuta con `sudo`**, igual que el original. Sin root falla el montaje de Drive (`/z4/remote/maint/mount` es de `root:root`) y también `umount`.
