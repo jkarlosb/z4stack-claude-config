@@ -45,7 +45,7 @@ Además existe `z4-drive.sh`, que solo sube a Drive lo que se le indique, reutil
    - En cuanto aparezca algo que convenga no perder: un hecho comprobado, un hallazgo tras mucha investigación, una contradicción o algo que no se ve a simple vista, o una conclusión útil para el futuro.
 
    Enseña el diff y, con OK, aplícalo y súbelo a `claude-config`.
-   Después, si la siguiente tarea es distinta, recomienda abrir una sesión nueva en `/z4` y da el primer mensaje listo para copiar (p. ej. «Lee el Estado de CLAUDE.md. Vamos con …»). Si es la misma tarea y la sesión está muy cargada, recomienda «Compactar sesión».
+   Después: si la siguiente tarea es distinta, es mejor abrir una sesión nueva en `/z4` que compactar; da el primer mensaje listo para copiar (p. ej. «Lee el Estado de CLAUDE.md. Vamos con …»). Si es la misma tarea y la sesión está cargada, recomienda compactar en la siguiente pausa natural, nunca a mitad de una prueba y siempre después de guardar el estado. El criterio es el gasto, no solo el espacio: cada llamada reenvía todo el contexto. Por encima de unos 100k tokens, con la mayor parte de tareas ya cerradas, compactar compensa. Para recomendarlo hay que saber el uso actual y el límite de la ventana (p. ej. «173k / 1M»): si no los sabes, pídemelos. Me basta con decírtelos, no hace falta `/context`.
 
 ## Hechos ya comprobados (no hay que volver a descubrirlos)
 - **El script se ejecuta con `sudo`**, igual que el original. Sin root falla el montaje de Drive (`/z4/remote/maint/mount` es de `root:root`) y también `umount`.
@@ -100,10 +100,16 @@ Además existe `z4-drive.sh`, que solo sube a Drive lo que se le indique, reutil
   - **Medida temporal (24-nov, 13 h):** `SET PERSIST binlog_expire_logs_seconds=10800` (3 h) + `PURGE BINARY LOGS BEFORE NOW() - INTERVAL 3 HOUR`. El disco quedó en 313G usados y 520G libres (38 %). Al principio no se purgó por una mala lectura de la salida («réplicas: fin» sin nada antes = sin réplicas).
   - Cuando se arregle quien escribe: `SET PERSIST binlog_expire_logs_seconds=86400` (24 h). Con el ritmo actual, 24 h serían 1,1-1,5 TB y no caben.
   - `SET PERSIST` se guarda en `/z4/web/data/mysqld-auto.cnf`, que **manda sobre** `z4stack-mysql.cnf` y sobrevive a los reinicios. Para deshacerlo: `RESET PERSIST binlog_expire_logs_seconds`.
-  - **Siguiente paso:** el usuario instala el mu-plugin en prod y borra la opción. Después se comprueba que el ritmo de binlogs baja (ficheros por hora) y se sube la retención a 24 h o más.
+  - **Aplicado en prod el 24-nov:** filtro activo y opción borrada. **Comprobado a las 14:30:**
+    - La opción no existe.
+    - El último binlog (`binlog.000549`) crece ~1 MB/min; antes era ~1 GB/min.
+    - Quedan 131 ficheros: la purga automática al rotar funciona, porque sin ella habría más de 200.
+  - **Siguiente paso:** confirmar el ritmo hacia las 15:30 (el binlog en curso debería ir por ~60 MB) y entonces `SET PERSIST binlog_expire_logs_seconds=86400` (24 h).
+  - Documentado como sugerencias en el historial (bajo «Carlos», 24-nov) y en la ficha técnica (Intervención → Harcodeos → Elementor Pro), que se revisa en cada mantenimiento.
+- **Orden de las próximas tareas:** 1) cerrar lo de Elementor; 2) en un chat nuevo, la alerta de disco; 3) Redis (noticias nuevas que no aparecen).
   - Para identificar opciones como esta: tamaño de los eventos `Update_rows` de `wp_options` + las opciones más grandes medidas dos veces, con 60 s entre una y otra.
 - **Pendientes:**
-  - **Red de seguridad contra el disco lleno** (cuando se resuelva Elementor). Se recomienda la **alerta cuando `df /` pase del 85 %** antes que un tope de binlogs por cron (más de 150G → `PURGE BINARY LOGS TO`):
+  - **Red de seguridad contra el disco lleno** (en un chat nuevo, justo después de Elementor). Decidido: **alerta cuando `df /` pase del 75 %**, con datos de qué ocupa (`df` y las carpetas más grandes). Se prefiere a un tope de binlogs por cron (más de 150G → `PURGE BINARY LOGS TO`):
     - Hoy hubo dos causas distintas (`web.original` y los binlogs) y solo la alerta cubre las dos.
     - La alerta no borra nada ni esconde a quien escribe sin control.
     - La retención por tiempo ya pone límite a los binlogs.
