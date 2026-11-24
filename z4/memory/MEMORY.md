@@ -2,3 +2,4 @@
 - [Documentos solo como comentarista](documentos-solo-como-comentarista.md) — en docs del usuario, comentarios/sugerencias, nunca editar
 - [Cambios 21-23 pendientes](cambios-pendientes-z4-evidencias.md) — aprobados para después del mantenimiento de prod del 23-nov
 - [Señalar lecturas equivocadas](senalar-lecturas-equivocadas.md) — si una decisión se basa en una mala lectura de una salida, decirlo al momento
+- [Rewind en el servidor](rewind-claude-code-servidor.md) — en web/móvil no hay rewind (usar Fork); código solo en VS Code o terminal
