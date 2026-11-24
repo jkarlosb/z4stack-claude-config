@@ -2,3 +2,4 @@
 - [Documentos solo como comentarista](documentos-solo-como-comentarista.md) — en docs del usuario, comentarios/sugerencias, nunca editar
 - [Cambios 21-23 pendientes](cambios-pendientes-z4-evidencias.md) — aprobados para después del mantenimiento de prod del 23-nov
 - [Doc de z4-evidencias](doc-z4-evidencias-fuente-verdad.md) — Google Doc fuente de la verdad del script y del protocolo
+- [Señalar lecturas equivocadas](senalar-lecturas-equivocadas.md) — si una decisión se basa en una mala lectura de una salida, decirlo al momento

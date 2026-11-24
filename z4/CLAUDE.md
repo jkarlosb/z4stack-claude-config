@@ -39,13 +39,11 @@ Además existe `z4-drive.sh`, que solo sube a Drive lo que se le indique, reutil
 6. **Secretos:** no imprimas `rclone.conf`, el `.env` completo ni la clave de PageSpeed.
 7. **Versiones siempre fijas** en imágenes y dependencias. Nunca `latest`.
 8. Respuestas en español, directas, con los comandos listos para copiar.
-9. **Guardar el estado.** Propón por tu cuenta guardar aquí (Estado, Hechos comprobados, Pendientes) y en la memoria lo que no esté escrito, y avisa al hacerlo. Hazlo en estos casos:
-   - Cuando termine una tarea o el usuario pase a otra distinta.
+9. **Guardar el estado.** Propón por tu cuenta guardar aquí (Estado, Hechos comprobados, Pendientes) y en la memoria lo que no esté escrito, y avisa al hacerlo. Hazlo en dos casos:
    - Cuando la conversación se alargue (muchos mensajes, salidas grandes o antes de un `/compact`). Incluye lo que está a medias y el siguiente paso exacto.
    - En cuanto aparezca algo que convenga no perder: un hecho comprobado, un hallazgo tras mucha investigación, una contradicción o algo que no se ve a simple vista, o una conclusión útil para el futuro.
 
    Enseña el diff y, con OK, aplícalo y súbelo a `claude-config`.
-   Después, si la siguiente tarea es distinta, recomienda abrir una sesión nueva en `/z4` y da el primer mensaje listo para copiar (p. ej. «Lee el Estado de CLAUDE.md. Vamos con …»). Si es la misma tarea y la sesión está muy cargada, recomienda «Compactar sesión».
 
 ## Hechos ya comprobados (no hay que volver a descubrirlos)
 - **El script se ejecuta con `sudo`**, igual que el original. Sin root falla el montaje de Drive (`/z4/remote/maint/mount` es de `root:root`) y también `umount`.
@@ -89,11 +87,14 @@ Además existe `z4-drive.sh`, que solo sube a Drive lo que se le indique, reutil
 ## Estado a 24-nov-2026 (prod PR, tras el mantenimiento del 23-nov)
 - **Redis desactivado en prod** (`wp redis disable`; drop-in sin instalar; `ocache` sigue en marcha). Con Redis, las noticias nuevas no aparecían. La causa está sin encontrar. El borrador de mu-plugin que vacía la caché al publicar está descartado por ahora (no se quieren parches).
 - La web cayó por disco al 100 %. Se recuperó con `sudo rm -rf /z4/web.original`, que liberó 226G.
-- **Urgente, a medias:** los binlogs ocupan 475G en prod (89 % de `/z4/web`) y crecen a **~1 GB por minuto** (un fichero de 1 GB por minuto el 24-nov a las 12:40). Si el ritmo antiguo hubiera sido este, 30 días no cabrían en el disco, así que algo cambió el 23 o el 24-nov: la actualización de 33 plugins, Redis desactivado, bots… (deducido). **Siguiente paso:**
-  1. Ritmo por hora y réplicas (solo lectura).
-  2. Con OK, `SET GLOBAL binlog_expire_logs_seconds=3600` + `PURGE BINARY LOGS BEFORE NOW() - INTERVAL 1 HOUR`.
-  3. Tabla culpable con el comando de `SHOW BINLOG EVENTS` (hechos).
-  4. Arreglo de raíz: corregir quien escribe, y decidir en el `.cnf` entre desactivar el binlog (`disable_log_bin`) o dejar una retención corta.
+- **Urgente, a medias:** los binlogs ocupan 475G en prod y crecen a ~1 GB por minuto. El 24-nov a las 12:55 quedaban 188G libres: el disco se llena hacia las 16-17 h.
+  - **Causa (comprobado):** prácticamente todo es `wp_options` (1030 MB de 1031 en `binlog.000479`).
+  - **Ritmo por hora:** 2-3 ficheros/h el 23-nov a las 19-21 h, justo tras el swap; 13 a la 01 h; ~45 a partir de las 05 h; 63 a las 10 h. Empezó antes de desactivar Redis, así que Redis no es la causa.
+  - **Hipótesis (deducida):** una opción que no para de crecer y se reescribe a menudo. Con ROW/FULL, cada `UPDATE` escribe el valor entero dos veces (antes y después).
+  - **Medida temporal (24-nov, 13 h):** `SET PERSIST binlog_expire_logs_seconds=10800` (3 h) + `PURGE BINARY LOGS BEFORE NOW() - INTERVAL 3 HOUR`. El disco quedó en 313G usados y 520G libres (38 %). Al principio no se purgó por una mala lectura de la salida («réplicas: fin» sin nada antes = sin réplicas).
+  - Cuando se arregle quien escribe: `SET PERSIST binlog_expire_logs_seconds=86400` (24 h). Con el ritmo actual, 24 h serían 1,1-1,5 TB y no caben.
+  - `SET PERSIST` se guarda en `/z4/web/data/mysqld-auto.cnf`, que **manda sobre** `z4stack-mysql.cnf` y sobrevive a los reinicios. Para deshacerlo: `RESET PERSIST binlog_expire_logs_seconds`.
+  - **Siguiente paso:** identificar la opción con el tamaño de los eventos `Update_rows` de `wp_options` y con las opciones más grandes medidas dos veces, con 60 s entre una y otra (comandos probados en staging, `t2.sh` del scratchpad de la sesión 72ff6900).
 - **Pendientes:**
   - Comprobar que hay una copia reciente de la BD en la nube.
   - Decidir si se borran `/z4/web.backup-eliminarmastarde` y `/z4/web.backup2` (16G cada una).
