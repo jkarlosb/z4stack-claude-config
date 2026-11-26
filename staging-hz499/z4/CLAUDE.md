@@ -3,7 +3,7 @@
 ## Qué es esto
 Este archivo vive en `/z4/CLAUDE.md`, fuera de `/z4/web`, para que no lo borre la sincronización de prod a staging. Todas las rutas son absolutas. `testweb/` significa `/z4/web/maintenance/testweb/`.
 
-Estamos sacando de `auto-maint.sh` un script independiente, `z4-evidencias.sh`, que hace **capturas de pantalla, PageSpeed, comparación de capturas y subida a Google Drive** para los mantenimientos web en z4stack. Se trabaja en el servidor de **staging** (lo identifica el archivo `/z4/staging/docker-compose.staging.yml`).
+Estamos sacando de `auto-maint.sh` un script independiente, `z4-evidencias.sh`, que hace **capturas de pantalla, PageSpeed, comparación de capturas y subida a Google Drive** para los mantenimientos web en z4stack. Se trabaja en el servidor de **staging**, cuyo nombre clave en Z4 Studios es **`staging-hz499`** (lo identifica también el archivo `/z4/staging/docker-compose.staging.yml`).
 
 Además existe `z4-drive.sh`, que solo sube a Drive lo que se le indique, reutilizando la subida de `z4-evidencias.sh` (19-nov-2026).
 
@@ -29,7 +29,7 @@ Además existe `z4-drive.sh`, que solo sube a Drive lo que se le indique, reutil
 ## Reglas obligatorias
 1. **Cambios mínimos.** No cambies ningún comportamiento sin aprobación explícita del usuario. Antes de editar: explica qué cambias y por qué, enseña el diff y espera el "sí". Numera los cambios; el último aprobado es el 20, más los cambios A–G. Commits en `/z4/web` (rama `prnoticias.com`): `6ad86a5`, `7b96164`, `1ed0634`, `90a4cd4` (prompt), `ebad449` (19), `9f24bf6` (20).
    - `z4-drive.sh` (sin numerar): `74f268e`, `f8a1ee8`, `f40fe9b`, `456a937`, `55e95d9`, `0796ca2`, `8494762` (registro de las 19 pruebas).
-   - Este CLAUDE.md, `~/.claude/CLAUDE.md` y la memoria (`~/.claude/projects/-z4/memory/`) están respaldados en el repo `~/claude-config` (GitHub privado `jkarlosb/z4stack-claude-config`). Después de cada cambio en cualquiera de ellos, súbelo al repo: copia, commit y push, con el bloque "Actualizar el repo" de su README. Ya no se hacen copias `-bck-`.
+   - Este CLAUDE.md y la memoria (`~/.claude/projects/-z4/memory/`) se respaldan en `claude-config` (`staging-hz499/z4/`) con `sync.sh`: sección P del CLAUDE.md global. Ya no se hacen copias `-bck-`.
 2. **El original es la referencia.** Si algo funcionaba en `auto-maint.sh`, no se rompe. Ante la duda, compara con el original y dilo. No "mejores" nada que no se haya pedido; proponlo y espera.
 3. **Honestidad.** Distingue lo comprobado de lo deducido. Verifica en el servidor con comandos de solo lectura antes de proponer una solución. Si una hipótesis falla, dilo claramente.
 4. **Orden de pruebas, de menos a más riesgo:** `bash -n` / `node --check` → comandos de solo lectura → ejecución real.
@@ -44,14 +44,7 @@ Además existe `z4-drive.sh`, que solo sube a Drive lo que se le indique, reutil
 6. **Secretos:** no imprimas `rclone.conf`, el `.env` completo ni la clave de PageSpeed.
 7. **Versiones siempre fijas** en imágenes y dependencias. Nunca `latest`.
 8. Respuestas en español, directas, con los comandos listos para copiar.
-9. **Guardar el estado.** Propón por tu cuenta guardar aquí (Estado, Hechos comprobados, Pendientes) y en la memoria lo que no esté escrito, y avisa al hacerlo. Hazlo en estos casos:
-   - Cuando termine una tarea o el usuario pase a otra distinta.
-   - Cuando la conversación se alargue (muchos mensajes, salidas grandes o antes de un `/compact`). Incluye lo que está a medias y el siguiente paso exacto.
-   - En cuanto aparezca algo que convenga no perder: un hecho comprobado, un hallazgo tras mucha investigación, una contradicción o algo que no se ve a simple vista, o una conclusión útil para el futuro.
-
-   Enseña el diff y, con OK, aplícalo y súbelo a `claude-config`.
-   En ese mismo momento, revisa si falta documentar algo en Drive (sección O del CLAUDE.md global) y, si falta, avísame.
-   Después: si la siguiente tarea es distinta, es mejor abrir una sesión nueva en `/z4` que compactar; da el primer mensaje listo para copiar (p. ej. «Lee el Estado de CLAUDE.md. Vamos con …»). Si es la misma tarea y la sesión está cargada, recomienda compactar en la siguiente pausa natural, nunca a mitad de una prueba y siempre después de guardar el estado. El criterio es el gasto, no solo el espacio: cada llamada reenvía todo el contexto. Por encima de unos 100k tokens, con la mayor parte de tareas ya cerradas, compactar compensa. Para recomendarlo hay que saber el uso actual y el límite de la ventana (p. ej. «173k / 1M»): si no los sabes, pídemelos. Me basta con decírtelos, no hace falta `/context`.
+9. **Guardar el estado:** sección P del CLAUDE.md global. Aquí van el Estado, los Hechos comprobados y los Pendientes de este proyecto.
 
 ## Hechos ya comprobados (no hay que volver a descubrirlos)
 - **El script se ejecuta con `sudo`**, igual que el original. Sin root falla el montaje de Drive (`/z4/remote/maint/mount` es de `root:root`) y también `umount`.
