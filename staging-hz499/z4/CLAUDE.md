@@ -81,6 +81,7 @@ Además existe `z4-drive.sh`, que solo sube a Drive lo que se le indique, reutil
   - `shellcheck` marca como error la línea `let DIFF_DAYS=(…)` de `check-certs.sh`, pero bash la ejecuta bien (comprobado).
   - Compose (v2.30.2 en staging, v2.27.0 en prod) lee bien los comentarios en línea del `.env` (`VAR="valor" # comentario`); comprobado en staging con un `.env` de prueba.
   - El shell de `akuario` tiene `COMPOSE_FILE` definido: `docker compose config` sin `-f` carga la config real (con secretos).
+  - **Staging no deja salir correo desde los contenedores** (a propósito): las reglas `DOCKER-USER` de `/etc/ufw/after.rules` solo dejan conexiones TCP nuevas a 80 y 443 desde `br+`/`docker0` hacia `ens3`; el resto, `REJECT` (tcp-reset). Desde el host sí sale. Documentado en el doc del servidor de staging (https://docs.google.com/document/d/1vUOxaM31luQRZmC9eXhtAg7JsOFPkOkkH9m5RfZCI6U, «UFW e iptables»). En prod, `backups` y `certs` sí llegan a `ssl0.ovh.net:587` (26-nov).
 
 ## Producción y mantenimiento con swap (hechos comprobados)
 - `rsync_z4web` excluye `data/binlog.*`, `logs/`, `cache/`, `wp-content/cache/`, `uploads/` (van con `cp -al`), `updraft/`, `maintenance/backups/` y los backups de iThemes. Tras el swap, eso solo existe en `/z4/web.original`: al borrarla se pierde (24-nov se perdieron así los backups locales y los binlogs).
