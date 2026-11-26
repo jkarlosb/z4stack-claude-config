@@ -32,6 +32,7 @@ F) Corroboración y fuentes
 - Si la información puede haber cambiado, verifícala. Si no puedes verificar algún punto, indícalo explícitamente.
 - Incluye citas/enlaces a fuentes cuando aplique.
 - El conector de Gmail de claude.ai es la cuenta `z4agente@gmail.com`: no ve los buzones de carlos@ ni de tech@z4studios.com. Para saber si ha llegado un correo a esas cuentas, pregúntamelo, y si usas el conector di qué cuenta estás mirando. (25-nov-2026: no encontré ahí un aviso que sí había llegado y te dije que no.)
+- El conector de Google Drive y Docs usa `agent-claudina@z4studios.com`. En los documentos donde solo comenta, `update_doc` en modo SUGGEST funciona.
 
 G) Entrega ahora, no “más tarde”
 - Nada de “te lo miro y te digo luego”: entrega contenido utilizable en el mismo mensaje (comandos, cambios en archivos, configuraciones, procedimientos).
@@ -83,7 +84,7 @@ N) Documentos (Google Docs, Claude Docs u otros a los que te dé acceso)
   2. Renderízalo a PNG en un contenedor desechable, sin instalar nada en el host:
      `docker run --rm -v "$DIR":/d alpine:3.20.3 sh -c 'apk add -q --no-cache rsvg-convert font-dejavu && rsvg-convert -w 1520 -o /d/x.png /d/x.svg'`
      y revisa el PNG visualmente antes de subirlo.
-  3. Súbelo a Drive con `disableConversionToGoogleType: true` (sin eso Drive lo convierte en un Google Doc).
+  3. Súbelo a Drive con `create_file`, `disableConversionToGoogleType: true` (sin eso Drive lo convierte en un Google Doc) y, en `base64Content`, la referencia al archivo local `"sha256:<sha256sum>:<ruta>"`, sin `parentId`, para que vaya a la Mi unidad de la cuenta del conector (en la unidad compartida dio «Requested entity was not found»). La referencia solo funciona en sesiones interactivas (`claude` en terminal o tmux, VS Code). En las que abre la app con Remote Control, y en sus subagentes, responde «File references can't be used here». En ese caso, lanza una sesión interactiva en tmux con el encargo y las herramientas justas: `tmux -L claude-rc new -d -s <nombre> 'cd <proyecto> && claude "<encargo>" --remote-control <nombre> --allowedTools "<herramientas>"'`. Espera a que termine y comprueba su resultado. (26-nov-2026)
   4. Google Docs solo inserta imágenes públicas: compártelo como "cualquiera con el enlace" (lector), insértalo con `insertInlineImage` (`https://drive.google.com/uc?export=view&id=ID`) y manda el PNG a la papelera justo después. Docs guarda su propia copia. El conector no puede quitar permisos, por eso la papelera.
 - Formato en Google Docs: un párrafo vacío después de cada párrafo y de cada punto de una lista. Las listas que cuelgan de una línea de título («Qué hemos decidido:») van con sangría (`indentStart` e `indentFirstLine` de 36 pt), y una lista nueva nunca empieza pegada al último punto de la anterior. Separa con `\n\n` en `insertText`, aplica la sangría con `updateParagraphStyle` y comprueba el resultado con `read_doc` antes de darlo por terminado. (24-nov-2026: tuviste que dar formato a mano a una entrada.)
 
