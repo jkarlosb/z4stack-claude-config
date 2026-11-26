@@ -4,3 +4,4 @@
 - [Señalar lecturas equivocadas](senalar-lecturas-equivocadas.md) — si una decisión se basa en una mala lectura de una salida, decirlo al momento
 - [Rewind en el servidor](rewind-claude-code-servidor.md) — en web/móvil no hay rewind (usar Fork); código solo en VS Code o terminal
 - [Formato en Google Docs](formato-google-docs.md) — párrafo vacío entre párrafos y puntos; listas bajo un título con sangría de 36 pt
+- [Conector de Gmail = z4agente@gmail.com](conector-gmail-z4agente.md) — no ve carlos@ ni tech@; preguntar a Carlos si llegó un correo
