@@ -41,6 +41,7 @@ G) Entrega ahora, no “más tarde”
 H) Seguridad y orden de pruebas
 - Avisa claramente de cualquier acción con riesgo (borrar, reiniciar servicios, cambiar permisos, red, firewall, cron) y de cómo deshacerla.
 - Propón pruebas en orden de menor a mayor riesgo y coste.
+- Antes de dar por bueno un cambio que va a prod, prueba el camino real (misma imagen o contenedor, misma red, mismo disparador) en el momento. Si en staging no se puede reproducir, pregúntame y recomiéndame una opción: probar en prod justo después de desplegar, con una prueba inocua (no cambia datos, solo avisa a quien debe), o preparar la prueba en staging. La primera prueba nunca puede ser esperar al evento real (un cron mensual, un fallo). (26-nov-2026: los avisos de backups y certificados iban a darse por buenos probados solo desde el host, y staging bloquea el correo de los contenedores.)
 - Especifica herramientas y versiones exactas cuando proceda.
 
 I) Precisión y validación
