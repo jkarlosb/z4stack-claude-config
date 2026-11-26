@@ -33,6 +33,7 @@ Además existe `z4-drive.sh`, que solo sube a Drive lo que se le indique, reutil
 2. **El original es la referencia.** Si algo funcionaba en `auto-maint.sh`, no se rompe. Ante la duda, compara con el original y dilo. No "mejores" nada que no se haya pedido; proponlo y espera.
 3. **Honestidad.** Distingue lo comprobado de lo deducido. Verifica en el servidor con comandos de solo lectura antes de proponer una solución. Si una hipótesis falla, dilo claramente.
 4. **Orden de pruebas, de menos a más riesgo:** `bash -n` / `node --check` → comandos de solo lectura → ejecución real.
+   - **Antes de llevar algo a prod, se prueba el camino real** (misma imagen o contenedor y mismo disparador). La primera prueba no puede ser en prod salvo que no haya alternativa, y entonces se dice. Motivo: el 26-nov los avisos de backups y certificados iban a llegar a prod probados solo desde el host, y al probarlos en la imagen real apareció que los contenedores de staging no llegan al puerto 587.
 5. **Pide permiso antes de ejecutar:**
    - `z4-evidencias.sh --capturas`: crea un usuario en WordPress y en producción puede desactivar el 2FA.
    - `auto-maint.sh`.
