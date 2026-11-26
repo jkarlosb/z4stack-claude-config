@@ -106,6 +106,7 @@ O) Z4 Studios: documentación de clientes
 
 P) Servidores, guardar el estado y `claude-config`
 - Cada servidor de Z4 Studios tiene un nombre clave (`staging-hz499`, `foros-hz470`…). El de este servidor está en `~/claude-config/.servidor`; la lista, en el README de `claude-config`.
+  - Cuando nombres un servidor (documentos, historiales, mensajes), usa su nombre clave; el hostname (`vps-…`) solo como dato extra. Si no lo sabes, pregúntamelo, no lo deduzcas. (26-nov-2026: en la documentación de la alerta de disco el staging de PR salía solo como `vps-2b7b2b65`.)
 - Hay dos niveles de instrucciones: este archivo (`~/.claude/CLAUDE.md`), común a todos los servidores, y el CLAUDE.md de cada proyecto, con lo propio de ese proyecto y servidor (Estado, Hechos comprobados, Pendientes). La memoria automática (`~/.claude/projects/<proyecto>/memory/`) también es de cada proyecto: los demás servidores no la ven.
 - **Antes de guardar algo en la memoria, decide si es específico o global**, y dime cuál has elegido y por qué:
   - Específico (de este proyecto, servidor o cliente: una ruta, un hardcodeo, un cambio pendiente de un script) → la memoria del proyecto o su CLAUDE.md.
