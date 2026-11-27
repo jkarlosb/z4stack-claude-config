@@ -105,9 +105,10 @@ El historial detallado (del 17 al 26-nov) y la tabla de cambios 1–20 y A–G e
   - Para identificar opciones así: tamaño de los eventos `Update_rows` de `wp_options` + las opciones más grandes medidas dos veces, con 60 s entre una y otra.
 
 ### Pendientes
-- **Alerta de disco** (`z4-alerta-disco.sh`, avisa por encima del 75 %): funciona en staging (prueba cerrada el 26-nov) y está instalada en prod desde el 26-nov. Archivos: credencial en `/etc/z4/alertas-smtp.conf`, cron en `/etc/cron.d/z4-alerta-disco`, log en `/var/log/z4-alerta-disco.log`, estado en `/var/lib/z4-alerta-disco`.
-  - **Falta en prod:** comprobar que el propio cron avisa. En `/etc/cron.d/z4-alerta-disco`, cambiar `z4-alerta-disco.sh >>` por `z4-alerta-disco.sh 1 >>`, esperar al siguiente :00/:15/:30/:45, ver el log y el correo, volver a dejarlo como estaba y `rm /var/lib/z4-alerta-disco`.
-  - Después: fase 2 (valorar healthchecks.io) y fase 3 (Telegram).
+- **Alerta de disco** (`z4-alerta-disco.sh`, umbral por defecto 75 %, primer argumento `${1:-75}`): funciona en staging (prueba cerrada el 26-nov) y en prod (cerrada el 27-nov). Archivos: credencial en `/etc/z4/alertas-smtp.conf`, cron en `/etc/cron.d/z4-alerta-disco`, log en `/var/log/z4-alerta-disco.log`, estado en `/var/lib/z4-alerta-disco`.
+  - **Prod:** con umbral 1 en el cron avisó a las 22:00, 04:15, 10:30 y 16:45 (26-27-nov) y llegaron todos los correos. Desde el 27-nov el cron lleva `z4-alerta-disco.sh 50` (umbral 50 %, decisión de Carlos: disco estable al 38 %, `/dev/md3` de 878G). Script con sha256 `e7ac253d…` igual que staging. Anotado (sugerencias) en la documentación de uso, la ficha de PR y z4stack → Historial.
+  - Si el disco baja del umbral, el script borra solo el estado (no hace falta `rm`). Solo escribe en el log cuando avisa o falla.
+  - Siguiente: fase 2 (valorar healthchecks.io) y fase 3 (Telegram).
   - Documentación de uso: https://docs.google.com/document/d/1-QoYI1P1aXvNQfysgoWO1KSW3AVZL59vaMI9WypbHY4. Registro en z4stack → Historial.
 - **Avisos de backups y certificados** (en prod desde el 26-nov; commits `2fdaddf` y `9baadf4`).
   - Queda comprobar el siguiente backup con el `do-backup.sh` nuevo (lo mira Carlos el 27-nov): `grep -cF -- '-p***'` > 0, `grep -cE -- '-u root -p[^*]|pass:[^*]'` en 0 y dump nuevo en Drive.
@@ -117,7 +118,7 @@ El historial detallado (del 17 al 26-nov) y la tabla de cambios 1–20 y A–G e
 - Decidir si se rotan las credenciales de correo que hay en git (`z4stackweb`): `send-email.sh`, `check-certs.sh`, `scripts/check-disk-space.sh` (master) y `deploy/z4-wp-init.sh:151`. Afecta a todos los servidores del stack.
 - Decidir si se cambian la contraseña root de MySQL de prod y la de cifrado de los dumps (salieron en el chat del 26-nov). Si se cambia la de cifrado, hay que guardar la anterior para abrir los dumps antiguos.
 - Decidir si se borran `/z4/web.backup-eliminarmastarde` y `/z4/web.backup2` (16G cada una).
-- Averiguar si se ejecutó `tune2fs -m 1`; si se ejecutó, volver a `-m 5`.
+- Averiguar si se ejecutó `tune2fs -m 1`; si se ejecutó, volver a `-m 5`. Indicio (27-nov): `df -h /` en prod da 878G − 316G − 518G = 44G reservados (~5 %), así que parece que está en `-m 5` (deducido; se confirma con `sudo tune2fs -l /dev/md3 | grep -i 'reserved block count'`).
 - Redis: reproducir el fallo en staging (pide OK: `wp` que escribe). Faltan dos datos: qué bloque o página salía sin actualizar, y si las noticias eran programadas o manuales.
 - Protocolo (como sugerencias): comprobar `df` antes de la copia inicial y añadir un paso para lo excluido antes de borrar la original.
 - Bots (SQLi en `?amp=`, paginación profunda) → bloquear en Cloudflare. `user_hit_count` (ManageWP) y `_eael_post_view_count` escriben en cada visita.

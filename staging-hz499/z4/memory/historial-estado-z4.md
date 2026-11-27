@@ -1,8 +1,11 @@
 ---
 name: historial-estado-z4
-description: Historial detallado del proyecto /z4 (17-nov a 26-nov-2026) y tabla de cambios 1-20 y A-G de z4-evidencias.sh; leer cuando la tarea toque Elementor/binlogs, alerta de disco, avisos de correo o z4-evidencias
+description: "Historial detallado del proyecto /z4 (17-nov a 26-nov-2026) y tabla de cambios 1-20 y A-G de z4-evidencias.sh; leer cuando la tarea toque Elementor/binlogs, alerta de disco, avisos de correo o z4-evidencias"
 metadata:
+  node_type: memory
   type: project
+  originSessionId: 006565e6-8887-50b9-b578-f3afa0daca0d
+  modified: 2026-11-27T16:10:20.003Z
 ---
 
 Movido tal cual desde /z4/CLAUDE.md el 27-nov-2026 para que no se cargue en cada llamada. El estado vivo y los pendientes siguen en /z4/CLAUDE.md.
@@ -45,7 +48,8 @@ Movido tal cual desde /z4/CLAUDE.md el 27-nov-2026 para que no se cargue en cada
       - **Repetición comprobada (26-nov):** avisos a las 03:45:25, 10:00:25 y 16:15:24, cada ~6 h 15 min (`touch` tras el envío + cron en :00/:15/:30/:45; cada ejecución tarda ~25 s). **Llegaron los 4 correos** (lo confirmó Carlos).
       - **Limpieza comprobada:** relleno borrado a las 20:28:59; a las 20:30:03 el cron borró el estado y `df` volvió al 68 %. **Prueba de staging cerrada.** Siguiente: prod (abajo).
       - **Push:** `205551e` ya está subido (26-nov). Ojo: si se sincroniza `/z4/web` de prod a staging antes de que el script esté en prod, desaparece de staging y el cron falla en silencio (solo queda en el log).
-      - **Prod (`hz492`), instalado el 26-nov:** el script entró con el `git pull` de los avisos de backups; credencial, prueba sin aviso, aviso forzado con umbral 1 (correo recibido) y cron cada 15 min. **Falta:** comprobar que el propio cron avisa: cambiar en `/etc/cron.d/z4-alerta-disco` `z4-alerta-disco.sh >>` por `z4-alerta-disco.sh 1 >>`, esperar al siguiente :00/:15/:30/:45, ver el log y el correo, volver a dejarlo y `rm /var/lib/z4-alerta-disco`. Documentado (sugerencias) en la documentación de uso y en el historial de z4stack.
+      - **Prod (`hz492`), instalado el 26-nov:** el script entró con el `git pull` de los avisos de backups; credencial, prueba sin aviso, aviso forzado con umbral 1 (correo recibido) y cron cada 15 min. Documentado (sugerencias) en la documentación de uso y en el historial de z4stack.
+      - **Prod, cerrado (27-nov):** con `z4-alerta-disco.sh 1` en el cron avisó a las 22:00, 04:15, 10:30 y 16:45 y llegaron todos los correos. A las 16:59 Carlos dejó el cron en `z4-alerta-disco.sh 50` (umbral 50 % en vez del 75 % por defecto: disco estable al 38 %, `/dev/md3` 878G, 316G usados, 518G libres). sha256 del script en prod = staging (`e7ac253d…`). El umbral se pasa como argumento (`UMBRAL=${1:-75}`); el script no se edita. Documentado (sugerencias, 27-nov) en la documentación de uso, la ficha de PR («A tener en cuenta») y z4stack → Historial (entrada del 24-nov).
       - **Documentado (25-nov, como sugerencias):** documentación de uso en «Docu sobre funcionalidad alerta», https://docs.google.com/document/d/1-QoYI1P1aXvNQfysgoWO1KSW3AVZL59vaMI9WypbHY4 (qué hace, instalación, cron, parámetros, desinstalar, limitaciones, dónde está instalado: prod «pendiente»). En el historial de z4stack, la línea «Estado: falta…» pasa a ser el estado de staging, con enlaces a esa documentación y a gitweb. Al instalar en prod, actualizar los dos.
       - Enlace al script: `http://hz401.z4st.com:22923/?p=z4stackweb.git;a=blob;f=scripts/z4-alerta-disco.sh;hb=refs/heads/prnoticias.com` (gitweb pide usuario; desde aquí da 401). `resources.z4studios.com` y `hz401.z4st.com` son la misma IP.
       - En staging, `usados + disponibles ≈ tamaño` en `df`: parece que ext4 no tiene bloques reservados (deducido; se confirma con `sudo tune2fs -l /dev/sda1 | grep -i 'reserved block count'`).
