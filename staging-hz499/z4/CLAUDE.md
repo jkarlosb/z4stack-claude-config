@@ -105,6 +105,7 @@ El historial detallado (del 17 al 26-nov) y la tabla de cambios 1–20 y A–G e
   - Para identificar opciones así: tamaño de los eventos `Update_rows` de `wp_options` + las opciones más grandes medidas dos veces, con 60 s entre una y otra.
 
 ### Pendientes
+- **Seguridad de Claude en varios servidores** (27-nov): el plan está en el doc «Agentes IA» → Historial, entrada del 27-nov. Siguiente: Fase 1 en staging (política de root en `/etc/claude-code` y probar que Claude cierra su propia sesión `rc`). El push del global lo hace Carlos desde su Mac (`z4-global <servidor>`), nunca desde un servidor.
 - **Alerta de disco** (`z4-alerta-disco.sh`, umbral por defecto 75 %, primer argumento `${1:-75}`): funciona en staging (prueba cerrada el 26-nov) y en prod (cerrada el 27-nov). Archivos: credencial en `/etc/z4/alertas-smtp.conf`, cron en `/etc/cron.d/z4-alerta-disco`, log en `/var/log/z4-alerta-disco.log`, estado en `/var/lib/z4-alerta-disco`.
   - **Prod:** con umbral 1 en el cron avisó a las 22:00, 04:15, 10:30 y 16:45 (26-27-nov) y llegaron todos los correos. Desde el 27-nov el cron lleva `z4-alerta-disco.sh 50` (umbral 50 %, decisión de Carlos: disco estable al 38 %, `/dev/md3` de 878G). Script con sha256 `e7ac253d…` igual que staging. Anotado (sugerencias) en la documentación de uso, la ficha de PR y z4stack → Historial.
   - Si el disco baja del umbral, el script borra solo el estado (no hace falta `rm`). Solo escribe en el log cuando avisa o falla.
