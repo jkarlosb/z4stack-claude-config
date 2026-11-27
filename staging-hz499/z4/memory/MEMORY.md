@@ -1,3 +1,4 @@
 - [Tabla de cambios: una fila por archivo](tabla-cambios-una-fila-por-archivo.md) — nunca agrupar por carpeta ni por commit
 - [Documentos solo como comentarista](documentos-solo-como-comentarista.md) — en docs del usuario, comentarios/sugerencias, nunca editar
 - [Cambios 21-23 pendientes](cambios-pendientes-z4-evidencias.md) — aprobados para después del mantenimiento de prod del 23-nov
+- [Historial de estado de /z4](historial-estado-z4.md) — detalle 17-26 nov (Elementor/binlogs, alerta de disco, avisos de correo) y tabla de cambios 1-20 y A-G
