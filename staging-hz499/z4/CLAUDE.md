@@ -118,7 +118,6 @@ El historial detallado (del 17 al 26-nov) y la tabla de cambios 1–20 y A–G e
 - Decidir si se rotan las credenciales de correo que hay en git (`z4stackweb`): `send-email.sh`, `check-certs.sh`, `scripts/check-disk-space.sh` (master) y `deploy/z4-wp-init.sh:151`. Afecta a todos los servidores del stack.
 - Decidir si se cambian la contraseña root de MySQL de prod y la de cifrado de los dumps (salieron en el chat del 26-nov). Si se cambia la de cifrado, hay que guardar la anterior para abrir los dumps antiguos.
 - Decidir si se borran `/z4/web.backup-eliminarmastarde` y `/z4/web.backup2` (16G cada una).
-- Averiguar si se ejecutó `tune2fs -m 1`; si se ejecutó, volver a `-m 5`. Indicio (27-nov): `df -h /` en prod da 878G − 316G − 518G = 44G reservados (~5 %), así que parece que está en `-m 5` (deducido; se confirma con `sudo tune2fs -l /dev/md3 | grep -i 'reserved block count'`).
 - Redis: reproducir el fallo en staging (pide OK: `wp` que escribe). Faltan dos datos: qué bloque o página salía sin actualizar, y si las noticias eran programadas o manuales.
 - Protocolo (como sugerencias): comprobar `df` antes de la copia inicial y añadir un paso para lo excluido antes de borrar la original.
 - Bots (SQLi en `?amp=`, paginación profunda) → bloquear en Cloudflare. `user_hit_count` (ManageWP) y `_eael_post_view_count` escriben en cada visita.
